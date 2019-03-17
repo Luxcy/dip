@@ -11,22 +11,20 @@ using namespace std;
 
 int main()
 {
-//    cv::Mat src;
-//    src = cv::imread("dsad");
-    cout << "adsdad" << std::endl;
-    char strFile[50] = "1.bmp";
+
+    char strFile[50] = "2.bmp";
     printf("please input the .bmp source file name:\n");
-//    scanf("%s",strFile);
 
     Mat src;
     src = readimg(strFile);
+    src.show_bitHead();
+    src.show_bitInfoHead();
+//    src.show_pRgb();
+//    Mat dst = src.reverseColor();
+    Mat dst =src.RGB2Gray();
     char save_name[50] = "4.bmp";
     printf("please input the .bmp destination file name:\n");
-//    scanf("%s",save_name);
-    saveimg(src,save_name);
-//    readimg(strFile);
-//    Mat src(strFile);
+    saveimg(dst,save_name);
 
-    cout << "dasda" << std::endl;
     return 0;
 }

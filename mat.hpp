@@ -6,8 +6,10 @@
 #define DIP_MAT_HPP
 
 #include "mat.h"
-Mat::Mat():dims(0), rows(0), cols(0){
+#pragma pack(1) //强制内存以1字节为单位对齐
+Mat::Mat():rows(0), cols(0){
     dataOfBmp_src = NULL;
+    pRgb = NULL;
 }
 Mat::Mat(const char* filename){
     FILE* pfile;
@@ -21,26 +23,11 @@ Mat::Mat(const char* filename){
             printf("file is not .bmp file!");
         }
         fread(&bitInfoHead,1,sizeof(BITMAPINFOHEADER),pfile);
-
     }
     else
     {
         printf("file open fail!\n");
     }
-    printf("位图信息头:\n");
-    printf("结构体的长度:%d\n",bitInfoHead.biSize);
-    printf("位图宽:%d\n",bitInfoHead.biWidth);
-    printf("位图高:%d\n",bitInfoHead.biHeight);
-    printf("biPlanes平面数:%d\n",bitInfoHead.biPlanes);
-    printf("biBitCount采用颜色位数:%d\n",bitInfoHead.biBitCount);
-    printf("压缩方式:%d\n",bitInfoHead.biCompression);
-    printf("biSizeImage实际位图数据占用的字节数:%d\n",bitInfoHead.biSizeImage);
-    printf("X方向分辨率:%d\n",bitInfoHead.biXPelsPerMeter);
-    printf("Y方向分辨率:%d\n",bitInfoHead.biYPelsPerMeter);
-    printf("使用的颜色数:%d\n",bitInfoHead.biClrUsed);
-    printf("重要颜色数:%d\n",bitInfoHead.biClrImportant);
-
-    RGBQUAD* pRgb=NULL;
 
     if(bitInfoHead.biBitCount < 24)//有调色板
     {
@@ -50,7 +37,7 @@ Mat::Mat(const char* filename){
             nPlantNum = long(pow(2,double(bitInfoHead.biBitCount)));    //   Mix color Plant Number;
         pRgb=new RGBQUAD[nPlantNum*sizeof(RGBQUAD)];
         memset(pRgb,0,nPlantNum*sizeof(RGBQUAD));
-        int num = fread(pRgb,4,nPlantNum,pfile);
+        pRgb_num = fread(pRgb,4,nPlantNum,pfile);
 
     }
 
@@ -193,7 +180,74 @@ Mat::Mat(const char* filename){
     }
 
 }
+Mat::Mat(int width, int height){
+    pRgb = NULL;
+    cols = height;
+    rows = width;
+    dataOfBmp_src = new RGBQUAD*[cols];
+    for(DWORD i=0; i < cols;i++)
+        dataOfBmp_src[i] =new RGBQUAD[rows];
+}
+Mat Mat::reverseColor(){
+    Mat dst(rows,cols);
+    for(DWORD i=0;i<cols;i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = 255 - dataOfBmp_src[i][j].rgbRed;
+            dst.dataOfBmp_src[i][j].rgbGreen = 255 - dataOfBmp_src[i][j].rgbGreen;
+            dst.dataOfBmp_src[i][j].rgbBlue = 255 - dataOfBmp_src[i][j].rgbBlue;
+        }
+    }
+    return dst;
+}
+Mat Mat::RGB2Gray() {
+    Mat dst(rows,cols);
+    for(DWORD i=0;i<cols;i++)
+    {
+        for(DWORD j=0;j<rows;j++)
+        {
+            double gray = 0.299*dataOfBmp_src[i][j].rgbRed+0.587*dataOfBmp_src[i][j].rgbGreen+0.114*dataOfBmp_src[i][j].rgbBlue;
+            dst.dataOfBmp_src[i][j].rgbRed = (BYTE)gray;
+            dst.dataOfBmp_src[i][j].rgbGreen = (BYTE)gray;
+            dst.dataOfBmp_src[i][j].rgbBlue = (BYTE)gray;
+        }
+    }
+    return dst;
+}
 
+void Mat::show_pRgb(){
+    printf("颜色板信息:\n");
+    for (DWORD i=0; i<pRgb_num; i++)
+    {
+        if (i%5==0)
+        {
+            printf("\n");
+        }
+        printf("(%-3d,%-3d,%-3d)   ",(pRgb+i)->rgbRed,(pRgb+i)->rgbGreen,(pRgb+i)->rgbBlue);
+    }
+    printf("\n");
+}
+void Mat::show_bitHead(){
+    printf("位图文件头:\n");
+    printf("文件类型:%x\n",bitHead.bfType);
+    printf("文件大小:%d\n",bitHead.bfSize);
+    printf("保留字:%d\n",bitHead.bfReserved1);
+    printf("保留字:%d\n",bitHead.bfReserved2);
+    printf("实际位图数据的偏移字节数:%d\n",bitHead.bfOffBits);
+}
+void Mat::show_bitInfoHead(){
+    printf("位图信息头:\n");
+    printf("结构体的长度:%d\n",bitInfoHead.biSize);
+    printf("位图宽:%d\n",bitInfoHead.biWidth);
+    printf("位图高:%d\n",bitInfoHead.biHeight);
+    printf("biPlanes平面数:%d\n",bitInfoHead.biPlanes);
+    printf("biBitCount采用颜色位数:%d\n",bitInfoHead.biBitCount);
+    printf("压缩方式:%d\n",bitInfoHead.biCompression);
+    printf("biSizeImage实际位图数据占用的字节数:%d\n",bitInfoHead.biSizeImage);
+    printf("X方向分辨率:%d\n",bitInfoHead.biXPelsPerMeter);
+    printf("Y方向分辨率:%d\n",bitInfoHead.biYPelsPerMeter);
+    printf("使用的颜色数:%d\n",bitInfoHead.biClrUsed);
+    printf("重要颜色数:%d\n",bitInfoHead.biClrImportant);
+}
 BITMAPFILEHEADER Mat::Get_bitHead(){
     return bitHead;
 

@@ -7,8 +7,10 @@
 #define   WIDTHBYTES(bits) (((bits)+31)/32*4)
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef long LONG;
+typedef unsigned int DWORD; ///int为4个字节，unsinged int为4个字节, long为8个字节,unsinged long 为8个字节
+typedef int LONG;
+//typedef unsigned long DWORD;
+//typedef long LONG;
 
 #pragma pack(1) //强制内存以1字节为单位对齐
 

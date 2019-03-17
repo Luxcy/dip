@@ -78,7 +78,6 @@ void saveimg(Mat src,char* filename)
             BYTE tmp=0;
             for(j=0; j<l_width; j++)
                 fwrite(&tmp,1,1,pfile);
-
         }
     }
 
