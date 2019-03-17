@@ -13,7 +13,7 @@ int main()
 {
 //    cv::Mat src;
 //    src = cv::imread("dsad");
-
+    cout << "adsdad" << std::endl;
     char strFile[50] = "1.bmp";
     printf("please input the .bmp source file name:\n");
 //    scanf("%s",strFile);
@@ -26,7 +26,6 @@ int main()
     saveimg(src,save_name);
 //    readimg(strFile);
 //    Mat src(strFile);
-
 
     cout << "dasda" << std::endl;
     return 0;
