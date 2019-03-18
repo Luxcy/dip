@@ -180,13 +180,73 @@ Mat::Mat(const char* filename){
     }
 
 }
-Mat::Mat(int width, int height){
+Mat::Mat(DWORD width, DWORD height){
     pRgb = NULL;
     cols = height;
     rows = width;
     dataOfBmp_src = new RGBQUAD*[cols];
     for(DWORD i=0; i < cols;i++)
         dataOfBmp_src[i] =new RGBQUAD[rows];
+}
+Mat Mat::Zoom(double times, InterpolationType type){
+    DWORD new_width = DWORD(rows * times + 0.5);
+    DWORD new_height = DWORD(cols * times + 0.5);
+    Mat dst(new_width,new_height);
+    if(type == NearestNeighbor){
+        for(DWORD i=0; i<new_height; i++){
+            for(DWORD j=0; j<new_width; j++){
+                DWORD  ii = DWORD(i * 1.0 / times + 0.5);
+                DWORD  jj = DWORD(j * 1.0 / times + 0.5);
+                if(ii >= cols) ii = cols - 1;
+                if(jj >= rows) jj = rows - 1;
+                dst.dataOfBmp_src[i][j].rgbRed = dataOfBmp_src[ii][jj].rgbRed;
+                dst.dataOfBmp_src[i][j].rgbGreen = dataOfBmp_src[ii][jj].rgbGreen;
+                dst.dataOfBmp_src[i][j].rgbBlue = dataOfBmp_src[ii][jj].rgbBlue;
+
+            }
+        }
+    }
+    return dst;
+}
+Mat Mat::Flip(FlipType type) {
+    Mat dst(rows,cols);
+    if(type == HORIZONTAL){
+        for(DWORD i=0;i<cols;i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                dst.dataOfBmp_src[i][rows-j-1].rgbRed = dataOfBmp_src[i][j].rgbRed;
+                dst.dataOfBmp_src[i][rows-j-1].rgbGreen = dataOfBmp_src[i][j].rgbGreen;
+                dst.dataOfBmp_src[i][rows-j-1].rgbBlue = dataOfBmp_src[i][j].rgbBlue;
+            }
+        }
+    }else{
+        for(DWORD i=0;i<cols;i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                dst.dataOfBmp_src[cols-i-1][j].rgbRed = dataOfBmp_src[i][j].rgbRed;
+                dst.dataOfBmp_src[cols-i-1][j].rgbGreen = dataOfBmp_src[i][j].rgbGreen;
+                dst.dataOfBmp_src[cols-i-1][j].rgbBlue = dataOfBmp_src[i][j].rgbBlue;
+            }
+        }
+    }
+
+    return dst;
+}
+Mat Mat::Translate(int w, int h){
+    Mat dst(rows+abs(w),cols+abs(h));
+    for(DWORD i=0; i<dst.Get_cols();i++){
+        for(DWORD j=0;  j<dst.Get_rows(); j++){
+            dst.dataOfBmp_src[i][j].rgbRed = 255;
+            dst.dataOfBmp_src[i][j].rgbGreen = 255;
+            dst.dataOfBmp_src[i][j].rgbBlue = 0;
+        }
+    }
+    for(DWORD i=0;i<cols;i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i+std::max(0,h)][j+std::max(0,w)].rgbRed = dataOfBmp_src[i][j].rgbRed;
+            dst.dataOfBmp_src[i+std::max(0,h)][j+std::max(0,w)].rgbGreen = dataOfBmp_src[i][j].rgbGreen;
+            dst.dataOfBmp_src[i+std::max(0,h)][j+std::max(0,w)].rgbBlue = dataOfBmp_src[i][j].rgbBlue;
+        }
+    }
+    return dst;
 }
 Mat Mat::reverseColor(){
     Mat dst(rows,cols);

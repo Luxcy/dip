@@ -9,13 +9,14 @@
 #include<stdlib.h>
 #include <malloc.h>
 #include <memory.h>
+#include <algorithm>
 #include "global.h"
 #include <iostream>
 class Mat{
 public:
     Mat();
     Mat(const char* filename);
-    Mat(int width, int height);
+    Mat(DWORD width, DWORD height);
     void show_bitInfoHead();
     void show_bitHead();
     void show_pRgb();
@@ -27,12 +28,15 @@ public:
 
     Mat reverseColor();
     Mat RGB2Gray();
+    Mat Translate(int w, int h);
+    Mat Flip(FlipType type);
+    Mat Zoom(double times, InterpolationType type = NearestNeighbor);
 //    double contrast(BYTE** dataOfBmp_gray, DWORD width, DWORD height, bool flag);
 
 protected:
     BITMAPFILEHEADER   bitHead;
     BITMAPINFOHEADER bitInfoHead;
-    int rows, cols;
+    DWORD rows, cols;
     RGBQUAD** dataOfBmp_src;
     RGBQUAD* pRgb;
     int pRgb_num;

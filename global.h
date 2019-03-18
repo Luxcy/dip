@@ -50,4 +50,13 @@ typedef struct tagRGBQUAD {
     BYTE     rgbReserved; //保留值
 } RGBQUAD;
 
+enum FlipType{
+    HORIZONTAL,
+    VERTICAL
+};
+enum InterpolationType{
+    NearestNeighbor,
+    Bilinear,
+    BiCubic
+};
 #endif //DIP_GLOBAL_H
