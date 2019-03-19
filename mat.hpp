@@ -209,30 +209,6 @@ Mat Mat::Rotation(int degree){
     DWORD new_Width = DWORD(std::max(fabs(dstx[0] - dstx[3]), fabs(dstx[1] - dstx[2]))) + 1;
     DWORD new_heigth = DWORD(std::max(fabs(dsty[0] - dsty[3]), fabs(dsty[1] - dsty[2]))) + 1;
 
-//    double srci = cols * 1.0;
-//    double srcj = rows * 1.0;
-//
-//    double SrcX1 = -srci / 2;
-//    double SrcY1 = srcj / 2;
-//    double SrcX2 = srci / 2;
-//    double SrcY2 = srcj / 2;
-//    double SrcX3 = -srci / 2;
-//    double SrcY3 = -srcj / 2;
-//    double SrcX4 = srci / 2;
-//    double SrcY4 = -srcj / 2;
-//
-//    double DstX1 = SrcX1 * cosA - SrcY1 * sinA;
-//    double DstY1 = SrcX1 * sinA + SrcY1 * cosA;
-//    double DstX2 = SrcX2 * cosA - SrcY2 * sinA;
-//    double DstY2 = SrcX2 * sinA + SrcY2 * cosA;
-//    double DstX3 = SrcX3 * cosA - SrcY3 * sinA;
-//    double DstY3 = SrcX3 * sinA + SrcY3 * cosA;
-//    double DstX4 = SrcX4 * cosA - SrcY4 * sinA;
-//    double DstY4 = SrcX4 * sinA + SrcY4 * cosA;
-//
-//    int DstHeight = int(std::max(fabs(DstX1 - DstX4), fabs(DstX2 - DstX3))) + 1;
-//    int DstWidth = int(std::max(fabs(DstY1 - DstY4), fabs(DstY2 - DstY3))) + 1;
-
     Mat dst(new_Width,new_heigth);
     dst.SetBackGrund(255,255,0);
 
