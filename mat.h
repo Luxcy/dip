@@ -25,12 +25,16 @@ public:
     int Get_cols();
     int Get_rows();
     RGBQUAD** Get_data();
+    void SetBackGrund(BYTE r, BYTE g, BYTE b);
+    bool PixelsIsInPic(DWORD x, DWORD y);
 
     Mat reverseColor();
     Mat RGB2Gray();
     Mat Translate(int w, int h);
     Mat Flip(FlipType type);
     Mat Zoom(double times, InterpolationType type = NearestNeighbor);
+    Mat Rotation(int degree);
+
 //    double contrast(BYTE** dataOfBmp_gray, DWORD width, DWORD height, bool flag);
 
 protected:

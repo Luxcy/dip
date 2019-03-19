@@ -25,7 +25,8 @@ int main()
     Mat dst;
 //    dst = src.Translate(10,-10);
 //    dst = src.Flip(VERTICAL);
-    dst = src.Zoom(0.5);
+//    dst = src.Zoom(0.6);
+    dst = src.Rotation(-10);
     char save_name[50] = "5.bmp";
     printf("please input the .bmp destination file name:\n");
     saveimg(dst,save_name);

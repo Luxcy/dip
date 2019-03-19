@@ -188,21 +188,87 @@ Mat::Mat(DWORD width, DWORD height){
     for(DWORD i=0; i < cols;i++)
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
+/*
+ * @define　以图片中心为旋转点
+ * @param degree 逆时针旋转的角度　0-360
+*/
+Mat Mat::Rotation(int degree){
+    double angle = degree * 1.0 / 180.0 * PI;
+    double cosA = cos(angle);
+    double sinA = sin(angle);
+    double rx0 = cols * 0.5;
+    double ry0 = rows * 0.5;
+
+    double srcx[4] = {0, 0, cols*1.0-1, cols*1.0-1};
+    double srcy[4] = {0, rows*1.0-1, 0, rows*1.0-1};
+    double dstx[4],dsty[4];
+    for(int i=0; i<4; i++){
+        dstx[i] = (srcx[i]- rx0) * cosA - (srcy[i] - ry0) * sinA + rx0;
+        dsty[i] = (srcx[i] - rx0) * cosA + (srcy[i] - ry0) * sinA + rx0;
+    }
+    DWORD new_Width = DWORD(std::max(fabs(dstx[0] - dstx[3]), fabs(dstx[1] - dstx[2]))) + 1;
+    DWORD new_heigth = DWORD(std::max(fabs(dsty[0] - dsty[3]), fabs(dsty[1] - dsty[2]))) + 1;
+
+//    double srci = cols * 1.0;
+//    double srcj = rows * 1.0;
+//
+//    double SrcX1 = -srci / 2;
+//    double SrcY1 = srcj / 2;
+//    double SrcX2 = srci / 2;
+//    double SrcY2 = srcj / 2;
+//    double SrcX3 = -srci / 2;
+//    double SrcY3 = -srcj / 2;
+//    double SrcX4 = srci / 2;
+//    double SrcY4 = -srcj / 2;
+//
+//    double DstX1 = SrcX1 * cosA - SrcY1 * sinA;
+//    double DstY1 = SrcX1 * sinA + SrcY1 * cosA;
+//    double DstX2 = SrcX2 * cosA - SrcY2 * sinA;
+//    double DstY2 = SrcX2 * sinA + SrcY2 * cosA;
+//    double DstX3 = SrcX3 * cosA - SrcY3 * sinA;
+//    double DstY3 = SrcX3 * sinA + SrcY3 * cosA;
+//    double DstX4 = SrcX4 * cosA - SrcY4 * sinA;
+//    double DstY4 = SrcX4 * sinA + SrcY4 * cosA;
+//
+//    int DstHeight = int(std::max(fabs(DstX1 - DstX4), fabs(DstX2 - DstX3))) + 1;
+//    int DstWidth = int(std::max(fabs(DstY1 - DstY4), fabs(DstY2 - DstY3))) + 1;
+
+    Mat dst(new_Width,new_heigth);
+    dst.SetBackGrund(255,255,0);
+
+    double rx1 = new_heigth * 0.5;
+    double ry1 = new_Width * 0.5;
+
+    for(DWORD i=0; i<new_heigth; i++) {
+        for (DWORD j = 0; j < new_Width; j++) {
+            //顺变换:src平移到(0,0)，逆时针旋转角度A,在平移到dst的中心点(rx1,ry1)
+            ///注意：dst的中心是(rx1,ry1).逆变换是由dst平移到(0,0)，再顺时针旋转角度A，在平移到src的中心点（rx0,ry0）
+            int src_x = int((i * 1.0 - rx1) * cosA + (j * 1.0 - ry1) * sinA + rx0 + 0.5);
+            int src_y = int(-(i * 1.0 - rx1) * sinA + (j * 1.0 - ry1) * cosA + ry0 + 0.5);
+            if(PixelsIsInPic(src_x,src_y)){
+                dst.dataOfBmp_src[i][j].rgbRed = dataOfBmp_src[src_x][src_y].rgbRed;
+                dst.dataOfBmp_src[i][j].rgbGreen = dataOfBmp_src[src_x][src_y].rgbGreen;
+                dst.dataOfBmp_src[i][j].rgbBlue = dataOfBmp_src[src_x][src_y].rgbBlue;
+            }
+        }
+    }
+    return dst;
+}
 Mat Mat::Zoom(double times, InterpolationType type){
     DWORD new_width = DWORD(rows * times + 0.5);
     DWORD new_height = DWORD(cols * times + 0.5);
     Mat dst(new_width,new_height);
+    ///[todo]　补全其他两种
     if(type == NearestNeighbor){
         for(DWORD i=0; i<new_height; i++){
             for(DWORD j=0; j<new_width; j++){
                 DWORD  ii = DWORD(i * 1.0 / times + 0.5);
                 DWORD  jj = DWORD(j * 1.0 / times + 0.5);
-                if(ii >= cols) ii = cols - 1;
-                if(jj >= rows) jj = rows - 1;
-                dst.dataOfBmp_src[i][j].rgbRed = dataOfBmp_src[ii][jj].rgbRed;
-                dst.dataOfBmp_src[i][j].rgbGreen = dataOfBmp_src[ii][jj].rgbGreen;
-                dst.dataOfBmp_src[i][j].rgbBlue = dataOfBmp_src[ii][jj].rgbBlue;
-
+                if(PixelsIsInPic(ii,jj)){
+                    dst.dataOfBmp_src[i][j].rgbRed = dataOfBmp_src[ii][jj].rgbRed;
+                    dst.dataOfBmp_src[i][j].rgbGreen = dataOfBmp_src[ii][jj].rgbGreen;
+                    dst.dataOfBmp_src[i][j].rgbBlue = dataOfBmp_src[ii][jj].rgbBlue;
+                }
             }
         }
     }
@@ -232,13 +298,7 @@ Mat Mat::Flip(FlipType type) {
 }
 Mat Mat::Translate(int w, int h){
     Mat dst(rows+abs(w),cols+abs(h));
-    for(DWORD i=0; i<dst.Get_cols();i++){
-        for(DWORD j=0;  j<dst.Get_rows(); j++){
-            dst.dataOfBmp_src[i][j].rgbRed = 255;
-            dst.dataOfBmp_src[i][j].rgbGreen = 255;
-            dst.dataOfBmp_src[i][j].rgbBlue = 0;
-        }
-    }
+    dst.SetBackGrund(255,255,0);
     for(DWORD i=0;i<cols;i++) {
         for (DWORD j = 0; j < rows; j++) {
             dst.dataOfBmp_src[i+std::max(0,h)][j+std::max(0,w)].rgbRed = dataOfBmp_src[i][j].rgbRed;
@@ -259,6 +319,20 @@ Mat Mat::reverseColor(){
     }
     return dst;
 }
+bool Mat::PixelsIsInPic(DWORD x, DWORD y){
+    return x>=0&&x<cols&&y>=0&&y<rows;
+}
+
+void Mat::SetBackGrund(BYTE r, BYTE g, BYTE b){
+    for(DWORD i=0; i<cols;i++){
+        for(DWORD j=0;  j<rows; j++){
+            dataOfBmp_src[i][j].rgbRed = r;
+            dataOfBmp_src[i][j].rgbGreen = g;
+            dataOfBmp_src[i][j].rgbBlue = b;
+        }
+    }
+}
+
 Mat Mat::RGB2Gray() {
     Mat dst(rows,cols);
     for(DWORD i=0;i<cols;i++)

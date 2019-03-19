@@ -59,4 +59,5 @@ enum InterpolationType{
     Bilinear,
     BiCubic
 };
+double PI = 3.1415926;
 #endif //DIP_GLOBAL_H

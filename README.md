@@ -32,8 +32,8 @@ digital image processing
 ### 五　几何运算
 * 平移 √
 * 镜像 √
-* 缩放 √
-* 旋转
+* 缩放  NearestNeighbor √   Bilinear   BiCubic
+* 旋转 √
 * 仿射变换
 * 三角变形
 * 图像交融
