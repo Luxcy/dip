@@ -204,7 +204,7 @@ Mat Mat::Rotation(int degree){
     double dstx[4],dsty[4];
     for(int i=0; i<4; i++){
         dstx[i] = (srcx[i]- rx0) * cosA - (srcy[i] - ry0) * sinA + rx0;
-        dsty[i] = (srcx[i] - rx0) * cosA + (srcy[i] - ry0) * sinA + rx0;
+        dsty[i] = (srcx[i] - rx0) * sinA + (srcy[i] - ry0) * cosA + rx0;
     }
     DWORD new_Width = DWORD(std::max(fabs(dstx[0] - dstx[3]), fabs(dstx[1] - dstx[2]))) + 1;
     DWORD new_heigth = DWORD(std::max(fabs(dsty[0] - dsty[3]), fabs(dsty[1] - dsty[2]))) + 1;

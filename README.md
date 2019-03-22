@@ -33,7 +33,7 @@ digital image processing
 * 平移 √
 * 镜像 √
 * 缩放  NearestNeighbor √   Bilinear   BiCubic
-* 旋转 √
+* 旋转  存在明显的锯齿装（待改进）　　√
 * 仿射变换
 * 三角变形
 * 图像交融
