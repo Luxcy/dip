@@ -4,14 +4,9 @@
 
 #ifndef DIP_MAT_H
 #define DIP_MAT_H
-#include<math.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include <malloc.h>
-#include <memory.h>
-#include <algorithm>
+#include "base.hpp"
 #include "global.h"
-#include <iostream>
+
 class Mat{
 public:
     Mat();
@@ -35,7 +30,15 @@ public:
     Mat Zoom(double times, InterpolationType type = NearestNeighbor);
     Mat Rotation(int degree);
 
-//    double contrast(BYTE** dataOfBmp_gray, DWORD width, DWORD height, bool flag);
+    double contrast( bool flag);
+    Mat imgGamma(double gamma);
+    Mat imgLog();
+    Mat Contrast_stretch(DWORD r1, DWORD s1, DWORD r2, DWORD s2);
+    Mat Bit_plane_slice(int k);
+
+
+
+
 
 protected:
     BITMAPFILEHEADER   bitHead;

@@ -39,6 +39,10 @@ digital image processing
 * 图像交融
 
 ### 基于灰度变换的图片增强
+* 对比度 √
+* Image Negatives = 反色 √
+* Log Transformations √
+* Power-Law (Gamma) √
 * 根据四种(EF)函数直接变化
 * 直方图的均衡化和规定化
 ### 彩色图像处理

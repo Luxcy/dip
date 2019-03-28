@@ -188,6 +188,184 @@ Mat::Mat(DWORD width, DWORD height){
     for(DWORD i=0; i < cols;i++)
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
+/*函数功能：位切片(灰度图) 如果是彩色图，先变成灰度图
+  输入参数：k　表示从低位起数的第k位 0-7
+  输出值： 位切片图片
+*/
+Mat Mat::Bit_plane_slice(int k)
+{
+
+    char* str=new char[8];
+    Mat dst(rows,cols);
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            itoa(dataOfBmp_src[i][j].rgbRed,str,2);
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(str[k]-'0');
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(str[k]-'0');
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(str[k]-'0');
+        }
+    }
+    return dst;
+}
+/*函数功能：分段函数增强
+  输入参数：r1,s1为第一个拐点，r2,s2为第二个拐点
+  输出值： 增强后的图片
+*/
+Mat Mat::Contrast_stretch(DWORD r1, DWORD s1, DWORD r2, DWORD s2)
+{
+    double gamma = 3.0;
+    Mat dst(rows,cols);
+    int tag[256];
+    for(DWORD i=0; i<r1; i++){
+        tag[i] = DWORD((i - 0) * (s1 - 0) * 1.0 / (r1 - 0) + 0 + 0.5);
+    }
+    for(DWORD i=r1; i<r2; i++){
+        tag[i] = DWORD((i - r1) * (s2 - s1) * 1.0 / (r2 - r1) + 0 + 0.5);
+    }
+    for(DWORD i=r2; i<255; i++){
+        tag[i] = DWORD((i - r2) * (255 - s2) * 1.0 / (255 - r2) + 0 + 0.5);
+    }
+
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(tag[dataOfBmp_src[i][j].rgbRed]);
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(tag[dataOfBmp_src[i][j].rgbGreen]);
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(tag[dataOfBmp_src[i][j].rgbBlue]);
+        }
+    }
+    return dst;
+}
+/*函数功能：log增强　(0-255)
+  输入参数：gamma 公式 s = clog(r + 1)
+  输出值： 增强后的图片
+*/
+Mat Mat::imgLog()
+{
+    double c = 255.0 / log(256.0);
+    Mat dst(rows,cols);
+    int tag[256];
+    std::cout << log(exp(1)) << std::endl;
+    for(int i=0; i<256; i++){
+        tag[i] = int(c * log(i * 1.0 + 1));
+    }
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(tag[dataOfBmp_src[i][j].rgbRed]);
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(tag[dataOfBmp_src[i][j].rgbGreen]);
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(tag[dataOfBmp_src[i][j].rgbBlue]);
+        }
+    }
+    return dst;
+}
+/*函数功能：Gamma 增强　(0-255)
+  输入参数：gamma 公式 s = (r/255) ^ (gamma) * 255
+  输出值： 增强后的图片
+*/
+Mat Mat::imgGamma(double gamma)
+{
+    Mat dst(rows,cols);
+    int tag[256];
+    for(int i=0; i<256; i++){
+        tag[i] = int(pow(i * 1.0 / 255.0, gamma) * 255.0);
+    }
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(tag[dataOfBmp_src[i][j].rgbRed]);
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(tag[dataOfBmp_src[i][j].rgbGreen]);
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(tag[dataOfBmp_src[i][j].rgbBlue]);
+        }
+    }
+    return dst;
+}
+/*函数功能：灰度图象四近邻（flag=0）或八近邻（flag=1）对比度
+  输入参数：BYTE* dataOfBmp_gray --- 灰度图像所有像素（以行为序）对应的灰度值；
+            DWORD width, DWORD height --- 原图像和输出图像的宽度和高度
+            （以像素为单位）
+			bool flag --- 四近邻或八近邻标志， flag=0为四近邻，flag=1为八近邻
+  输出值：  四近邻（flag=0）或八近邻（flag=1）对比度
+*/
+double Mat::contrast(bool flag)
+{
+    DWORD width = rows;
+    DWORD height = cols;
+    DWORD i, j;
+
+    BYTE** dataOfBmp_gray=NULL;
+    dataOfBmp_gray = new BYTE*[height];
+    for(i=0; i<height; i++)
+        dataOfBmp_gray[i] = new BYTE[width];
+
+    for(DWORD i=0;i<cols;i++)
+    {
+        for(DWORD j=0;j<rows;j++)
+        {
+            double gray = 0.299*dataOfBmp_src[i][j].rgbRed+0.587*dataOfBmp_src[i][j].rgbGreen+0.114*dataOfBmp_src[i][j].rgbBlue;
+            dataOfBmp_gray[i][j] = (BYTE)gray;
+        }
+    }
+
+
+    double contrast_sum = 0;
+    int tmp0 = 2, tmp1 = 3, tmp2 = 4;
+    int num = 0;
+
+    if(flag)
+    {
+        tmp0 = 3;
+        tmp1 = 5;
+        tmp2 = 8;
+    }
+    num = 4*tmp0+((width-2)+(height-2))*2*tmp1+((width-2)*(height-2))*tmp2;
+
+    for(i=0;i<height;i++)
+    {
+        for(j=0;j<width;j++)
+        {
+            if(i>0)
+            {
+                contrast_sum += pow((dataOfBmp_gray[i-1][j]-dataOfBmp_gray[i][j]),2.0);
+                if(flag)
+                {
+                    if(j>0)
+                    {
+                        contrast_sum += pow((dataOfBmp_gray[i-1][j-1]-dataOfBmp_gray[i][j]),2.0);
+                    }
+                    if(j<width-1)
+                    {
+                        contrast_sum += pow((dataOfBmp_gray[i-1][j+1]-dataOfBmp_gray[i][j]),2.0);
+                    }
+                }
+            }
+            if(i<height-1)
+            {
+                contrast_sum += pow((dataOfBmp_gray[i+1][j]-dataOfBmp_gray[i][j]),2.0);
+                if(flag)
+                {
+                    if(j>0)
+                    {
+                        contrast_sum += pow((dataOfBmp_gray[i+1][j-1]-dataOfBmp_gray[i][j]),2.0);
+                    }
+                    if(j<width-1)
+                    {
+                        contrast_sum += pow((dataOfBmp_gray[i+1][j+1]-dataOfBmp_gray[i][j]),2.0);
+                    }
+                }
+            }
+
+            if(j>0)
+            {
+                contrast_sum += pow((dataOfBmp_gray[i][j-1]-dataOfBmp_gray[i][j]),2.0);
+            }
+
+            if(j<width-1)
+            {
+                contrast_sum += pow((dataOfBmp_gray[i][j+1]-dataOfBmp_gray[i][j]),2.0);
+            }
+        }
+    }
+
+    return contrast_sum/num;
+}
 /*
  * @define　以图片中心为旋转点
  * @param degree 逆时针旋转的角度　0-360

@@ -10,7 +10,7 @@ set(IMAGE_FILES
     global.h
     mat.hpp
     operator.hpp
-    )
+        base.hpp)
 
 add_executable(DIP main.cpp ${IMAGE_FILES})
 target_link_libraries(DIP ${OpenCV_LIBS})
