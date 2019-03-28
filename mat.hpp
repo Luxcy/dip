@@ -194,11 +194,10 @@ Mat::Mat(DWORD width, DWORD height){
 */
 Mat Mat::Bit_plane_slice(int k)
 {
-
-    char* str=new char[8];
     Mat dst(rows,cols);
     for(DWORD i=0; i<cols; i++) {
         for (DWORD j = 0; j < rows; j++) {
+            char* str=new char[8];
             itoa(dataOfBmp_src[i][j].rgbRed,str,2);
             dst.dataOfBmp_src[i][j].rgbRed = BYTE(str[k]-'0');
             dst.dataOfBmp_src[i][j].rgbGreen = BYTE(str[k]-'0');
@@ -207,7 +206,59 @@ Mat Mat::Bit_plane_slice(int k)
     }
     return dst;
 }
-/*函数功能：分段函数增强
+/*函数功能：灰度图中平均的像素值
+  输入参数：无
+  输出值： 平均像素值
+*/
+DWORD Mat::Get_mean()
+{
+    double av = 0;
+    for(DWORD i=0; i<cols; i++) {
+        double avr = 0;
+        for (DWORD j = 0; j < rows; j++) {
+            double val = double(dataOfBmp_src[i][j].rgbRed);
+            avr += val;
+        }
+        avr = avr/rows;
+        av += avr;
+    }
+    return DWORD(av/cols);
+}
+/*函数功能：灰度图中最大的像素值
+  输入参数：无
+  输出值： 最大的像素值
+*/
+DWORD Mat::Get_max()
+{
+    DWORD max = 0;
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            DWORD val = DWORD(dataOfBmp_src[i][j].rgbRed);
+            if(val > max){
+                max = val;
+            }
+        }
+    }
+    return max;
+}
+/*函数功能：灰度图中最小的像素值
+  输入参数：无
+  输出值： 最小的像素值
+*/
+DWORD Mat::Get_min()
+{
+    DWORD min = 256;
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            DWORD val = DWORD(dataOfBmp_src[i][j].rgbRed);
+            if(val < min){
+                min = val;
+            }
+        }
+    }
+    return min;
+}
+/*函数功能：分段函数增强　(灰度图) 如果是彩色图，先变成灰度图
   输入参数：r1,s1为第一个拐点，r2,s2为第二个拐点
   输出值： 增强后的图片
 */
@@ -220,10 +271,10 @@ Mat Mat::Contrast_stretch(DWORD r1, DWORD s1, DWORD r2, DWORD s2)
         tag[i] = DWORD((i - 0) * (s1 - 0) * 1.0 / (r1 - 0) + 0 + 0.5);
     }
     for(DWORD i=r1; i<r2; i++){
-        tag[i] = DWORD((i - r1) * (s2 - s1) * 1.0 / (r2 - r1) + 0 + 0.5);
+        tag[i] = DWORD((i - r1) * (s2 - s1) * 1.0 / (r2 - r1) + s1 + 0.5);
     }
-    for(DWORD i=r2; i<255; i++){
-        tag[i] = DWORD((i - r2) * (255 - s2) * 1.0 / (255 - r2) + 0 + 0.5);
+    for(DWORD i=r2; i<256; i++){
+        tag[i] = DWORD((i - r2) * (255 - s2) * 1.0 / (255 - r2) + s2 + 0.5);
     }
 
     for(DWORD i=0; i<cols; i++) {

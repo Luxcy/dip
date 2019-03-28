@@ -40,10 +40,10 @@ digital image processing
 
 ### 基于灰度变换的图片增强
 * 对比度 √
-* Image Negatives = 反色 √
-* Log Transformations √
-* Power-Law (Gamma) √
-* 根据四种(EF)函数直接变化
+* Image Negatives = 反色 √(3.2)
+* Log Transformations √(3.2)
+* Power-Law (Gamma) √ (3.2)
+* Piecewise-Linear √ (3.2)
 * 直方图的均衡化和规定化
 ### 彩色图像处理
 * 彩色补偿

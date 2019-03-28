@@ -11,10 +11,8 @@ using namespace std;
 
 int main()
 {
-    cv::Mat image2 = cv::imread("Test.jpg");
-    cv::Mat imageLog(image2.size(), CV_32FC3);
 
-    char strFile[50] = "./img/3.bmp";
+    char strFile[50] = "./img/7.bmp";
     printf("please input the .bmp source file name:\n");
 
     Mat src;
@@ -34,6 +32,23 @@ int main()
 //    dst = src.imgGamma(4.0);
 //    dst = src.imgLog();
 //    dst = src.reverseColor();
+//    dst = src.Bit_plane_slice(7);
+
+//    for(int i=0; i<8; i++){
+//        dst = src.Bit_plane_slice(i);
+//        char bitname[50];
+//        sprintf(bitname,"%d.bmp",i);
+//        std::cout << "sdsadas0  " << std::endl;
+//        saveimg(dst,bitname);
+//    }
+//    DWORD r1 = src.Get_min();
+//    DWORD r2 = src.Get_max();
+//    dst = src.Contrast_stretch(r1, 0, r2, 255);
+
+    DWORD r1 = src.Get_mean();
+    DWORD r2 = r1;
+    dst = src.Contrast_stretch(r1, 0, r2, 255);
+
     char save_name[50] = "5.bmp";
     printf("please input the .bmp destination file name:\n");
     saveimg(dst,save_name);

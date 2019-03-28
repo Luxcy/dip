@@ -19,6 +19,9 @@ public:
     BITMAPINFOHEADER Get_bitInfoHead();
     int Get_cols();
     int Get_rows();
+    DWORD Get_max();
+    DWORD Get_min();
+    DWORD Get_mean();
     RGBQUAD** Get_data();
     void SetBackGrund(BYTE r, BYTE g, BYTE b);
     bool PixelsIsInPic(DWORD x, DWORD y);
