@@ -57,11 +57,19 @@ int main(int argc, char *argv[])
 //阈值分割
 //    dst = src.thresh_seg(128);
 // 规定化
-    Mat Z;
-    Z = readimg("./img/11.bmp");
-    dst = src.histogram_map(Z);
-    dst.compute_histogram();
-    dst = dst.show_histogram();
+//    Mat Z;
+//    Z = readimg("./img/11.bmp");
+//    dst = src.histogram_map(Z);
+//    dst.compute_histogram();
+//    dst = dst.show_histogram();
+
+//去噪
+//均值
+//    dst = src.Filter(Mean);
+//中值
+//    dst = src.Filter(Median);
+//KNN
+    dst = src.Filter(KNN);
 
     char *save_name = argv[2];
     printf("please input the .bmp destination file name:\n");

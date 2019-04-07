@@ -189,6 +189,160 @@ Mat::Mat(DWORD width, DWORD height){
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
 /*
+ * 函数功能：kernel 乘法　３×３
+ */
+int Mat::kernal_mul(int sx, int sy, ColorType ctype, kernalType ktype)
+{
+    int numk = 9;
+    int x[] = {-1,-1,-1,0,0,0,1,1,1};
+    int y[] = {-1,0,1,-1,0,1,-1,0,1};
+    for(int i=0;i<numk;i++){
+        if(sx+x[i]<0||sx+x[i]>=cols||sy+y[i]<0||sx+x[i]>=rows){
+            if(ctype == Red) return dataOfBmp_src[sx][sy].rgbRed;
+            else if(ctype == Green) return dataOfBmp_src[sx][sy].rgbGreen;
+            else return dataOfBmp_src[sx][sy].rgbBlue;
+        }
+    }
+    double num = 0;
+    if(ktype == Kone){
+        if(ctype == Red){
+
+            for(int i=0;i<numk;i++){
+                num += dataOfBmp_src[sx+x[i]][sy+y[i]].rgbRed * kernalone[i];
+            }
+        } else if(ctype == Blue){
+
+            for(int i=0;i<numk;i++){
+                num += dataOfBmp_src[sx+x[i]][sy+y[i]].rgbBlue * kernalone[i];
+            }
+        } else{
+
+            for(int i=0;i<numk;i++){
+                num += dataOfBmp_src[sx+x[i]][sy+y[i]].rgbGreen * kernalone[i];
+            }
+        }
+    }
+    return int(num/9.0)>(L-1)?L-1:int(num/9.0);
+}
+/*
+ * 函数功能：kernel 中值　３×３
+ */
+int Mat::kernal_med(int sx, int sy, ColorType ctype, kernalType ktype)
+{
+    int numk = 9;
+    int x[] = {-1,-1,-1,0,0,0,1,1,1};
+    int y[] = {-1,0,1,-1,0,1,-1,0,1};
+    for(int i=0;i<numk;i++){
+        if(sx+x[i]<0||sx+x[i]>=cols||sy+y[i]<0||sx+x[i]>=rows){
+            if(ctype == Red) return dataOfBmp_src[sx][sy].rgbRed;
+            else if(ctype == Green) return dataOfBmp_src[sx][sy].rgbGreen;
+            else return dataOfBmp_src[sx][sy].rgbBlue;
+        }
+    }
+    std::vector<int> pixels;
+    if(ktype == Kone){
+        if(ctype == Red){
+
+            for(int i=0;i<numk;i++){
+                pixels.push_back(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbRed * kernalone[i]);
+            }
+        } else if(ctype == Blue){
+
+            for(int i=0;i<numk;i++){
+                pixels.push_back(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbBlue * kernalone[i]);
+            }
+        } else{
+
+            for(int i=0;i<numk;i++){
+                pixels.push_back(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbGreen * kernalone[i]);
+            }
+        }
+    }
+    sort(pixels.begin(), pixels.end());
+    return pixels[(numk+1)/2];
+}
+/*
+ * 函数功能：kernel knn　３×３
+ */
+int Mat::kernal_knn(int sx, int sy, ColorType ctype, kernalType ktype)
+{
+    int numk = 9;
+    int x[] = {-1,-1,-1,0,0,0,1,1,1};
+    int y[] = {-1,0,1,-1,0,1,-1,0,1};
+    for(int i=0;i<numk;i++){
+        if(sx+x[i]<0||sx+x[i]>=cols||sy+y[i]<0||sx+x[i]>=rows){
+            if(ctype == Red) return dataOfBmp_src[sx][sy].rgbRed;
+            else if(ctype == Green) return dataOfBmp_src[sx][sy].rgbGreen;
+            else return dataOfBmp_src[sx][sy].rgbBlue;
+        }
+    }
+    std::vector<minker> pixels;
+    if(ktype == Kone){
+        if(ctype == Red){
+
+            for(int i=0;i<numk;i++){
+                minker st;
+                st.pix = dataOfBmp_src[sx+x[i]][sy+y[i]].rgbRed;
+                st.diff = abs(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbRed - dataOfBmp_src[sx][sy].rgbRed);
+                pixels.push_back(st);
+            }
+        } else if(ctype == Blue){
+
+            for(int i=0;i<numk;i++){
+                minker st;
+                st.pix = dataOfBmp_src[sx+x[i]][sy+y[i]].rgbBlue;
+                st.diff = abs(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbBlue - dataOfBmp_src[sx][sy].rgbBlue);
+                pixels.push_back(st);
+
+            }
+        } else{
+
+            for(int i=0;i<numk;i++){
+                minker st;
+                st.pix = dataOfBmp_src[sx+x[i]][sy+y[i]].rgbGreen;
+                st.diff = abs(dataOfBmp_src[sx+x[i]][sy+y[i]].rgbGreen - dataOfBmp_src[sx][sy].rgbGreen);
+                pixels.push_back(st);
+            }
+        }
+    }
+    sort(pixels.begin(), pixels.end(), comp);
+    double num = 0;
+    for(int i=0; i<5; i++){
+        num+=pixels[i].pix;
+    }
+    return int(num/9.0)>(L-1)?L-1:int(num/9.0);
+}
+
+/*
+ * 函数功能：滤波器　
+ * 输入:　均值　Mean 高斯
+ * 中值滤波器　Median 椒盐
+ * KNN
+ */
+Mat Mat::Filter(FilterType ftype)
+{
+    Mat dst(rows,cols);
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            if(ftype == Median){
+                dst.dataOfBmp_src[i][j].rgbRed = BYTE(kernal_med(i,j,Red,Kone));
+                dst.dataOfBmp_src[i][j].rgbGreen = BYTE(kernal_med(i,j,Green,Kone));
+                dst.dataOfBmp_src[i][j].rgbBlue = BYTE(kernal_med(i,j,Blue,Kone));
+            }else if(ftype == Mean){
+                dst.dataOfBmp_src[i][j].rgbRed = BYTE(kernal_mul(i,j,Red,Kone));
+                dst.dataOfBmp_src[i][j].rgbGreen = BYTE(kernal_mul(i,j,Green,Kone));
+                dst.dataOfBmp_src[i][j].rgbBlue = BYTE(kernal_mul(i,j,Blue,Kone));
+            }else if(ftype == KNN){
+                dst.dataOfBmp_src[i][j].rgbRed = BYTE(kernal_knn(i,j,Red,Kone));
+                dst.dataOfBmp_src[i][j].rgbGreen = BYTE(kernal_knn(i,j,Green,Kone));
+                dst.dataOfBmp_src[i][j].rgbBlue = BYTE(kernal_knn(i,j,Blue,Kone));
+            }
+
+        }
+    }
+    return dst;
+}
+/*
  * 函数功能：直方图的规定化
 */
 Mat Mat::histogram_map(Mat Z)

@@ -46,6 +46,15 @@ public:
     Mat Contrast_stretch(DWORD r1, DWORD s1, DWORD r2, DWORD s2);
     Mat Bit_plane_slice(int k);
 
+
+    Mat Filter(FilterType ftype);
+    int kernal_mul(int sx, int sy, ColorType ctype, kernalType ktype);
+    int kernal_med(int sx, int sy, ColorType ctype, kernalType ktype);
+    int kernal_knn(int sx, int sy, ColorType ctype, kernalType ktype);
+
+
+
+
 protected:
     BITMAPFILEHEADER   bitHead;
     BITMAPINFOHEADER bitInfoHead;

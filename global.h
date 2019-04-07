@@ -59,6 +59,30 @@ enum InterpolationType{
     Bilinear,
     BiCubic
 };
+enum kernalType
+{
+    Kone
+};
+enum ColorType
+{
+    Red,
+    Green,
+    Blue
+};
+enum FilterType
+{
+    KNN,
+    Mean,
+    Median
+};
 const double PI = 3.1415926;
 const DWORD L = 256; // gry level
+//const int kernalone[3][3] = {{1,1,1},{1,1,1},{1,1,1}};
+const int kernalone[] = {1,1,1,1,1,1,1,1,1};
+
+struct minker
+{
+    int pix;
+    int diff;
+};
 #endif //DIP_GLOBAL_H

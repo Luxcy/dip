@@ -10,6 +10,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <algorithm>
+#include <vector>
 #include "global.h"
 #include <iostream>
 void itoa(int n, char* &ans,int radix)
@@ -24,5 +25,9 @@ void itoa(int n, char* &ans,int radix)
 		n/=radix;
 	}while(n!=0);
 
+}
+bool comp(const minker &a,const minker &b)
+{
+    return a.diff < b.diff;
 }
 #endif //DIP_BASE_HPP
