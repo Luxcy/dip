@@ -9,10 +9,10 @@
 #include "mat.hpp"
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
 
-    char strFile[50] = "./img/7.bmp";
+    char *strFile=argv[1];
     printf("please input the .bmp source file name:\n");
 
     Mat src;
@@ -45,11 +45,16 @@ int main()
 //    DWORD r2 = src.Get_max();
 //    dst = src.Contrast_stretch(r1, 0, r2, 255);
 
-    DWORD r1 = src.Get_mean();
-    DWORD r2 = r1;
-    dst = src.Contrast_stretch(r1, 0, r2, 255);
+//    DWORD r1 = src.Get_mean();
+//    DWORD r2 = r1;
+//    dst = src.Contrast_stretch(r1, 0, r2, 255);
 
-    char save_name[50] = "5.bmp";
+
+    dst = src.RGB2Gray();
+    dst.compute_histogram();
+    dst = dst.show_histogram();
+
+    char *save_name = argv[2];
     printf("please input the .bmp destination file name:\n");
     saveimg(dst,save_name);
 

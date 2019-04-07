@@ -188,6 +188,57 @@ Mat::Mat(DWORD width, DWORD height){
     for(DWORD i=0; i < cols;i++)
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
+/*
+ * 函数功能：展示灰度图的直方图
+*/
+Mat Mat::show_histogram()
+{
+    DWORD maxL = -1;
+    for(int i=0; i<L; i++){
+        if(histogram[i] > maxL){
+            maxL = histogram[i];
+        }
+    }
+    maxL += 20;
+    Mat dst(L,maxL);
+    for(int i=0; i<maxL; i++) {
+        for (int j=0; j<L; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = 255;
+            dst.dataOfBmp_src[i][j].rgbGreen = 255;
+            dst.dataOfBmp_src[i][j].rgbBlue = 255;
+        }
+    }
+
+    for(int j=0; j<L; j++) {
+        for (int i = maxL-1; i >= maxL-histogram[j];i--) {
+            std::cout << i << " " << j << std::endl;
+            dst.dataOfBmp_src[i][j].rgbRed = 0;
+            dst.dataOfBmp_src[i][j].rgbGreen = 0;
+            dst.dataOfBmp_src[i][j].rgbBlue = 0;
+        }
+    }
+    return dst;
+}
+/*函数功能：灰度图的直方图
+  输入参数：无
+  输出值： 无
+*/
+void Mat::compute_histogram()
+{
+    for(int i=0; i<L; i++){
+        histogram[i] = 0;
+    }
+
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int index = int(dataOfBmp_src[i][j].rgbRed);
+            histogram[index]+=1;
+        }
+    }
+    for(int i=0; i<L; i++){
+        histogram[i] = DWORD(histogram[i]*1.0/cols/rows*200);
+    }
+}
 /*函数功能：位切片(灰度图) 如果是彩色图，先变成灰度图
   输入参数：k　表示从低位起数的第k位 0-7
   输出值： 位切片图片

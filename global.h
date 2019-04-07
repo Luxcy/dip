@@ -59,5 +59,6 @@ enum InterpolationType{
     Bilinear,
     BiCubic
 };
-double PI = 3.1415926;
+const double PI = 3.1415926;
+const DWORD L = 256; // gry level
 #endif //DIP_GLOBAL_H
