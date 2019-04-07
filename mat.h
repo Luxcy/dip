@@ -28,6 +28,9 @@ public:
 
     void compute_histogram();
     Mat show_histogram();
+    Mat histo_equalization();
+    Mat thresh_seg(DWORD thresh);
+    Mat histogram_map(Mat Z);
 
     Mat reverseColor();
     Mat RGB2Gray();
@@ -49,7 +52,7 @@ protected:
     DWORD rows, cols;
     RGBQUAD** dataOfBmp_src;
     RGBQUAD* pRgb;
-    DWORD histogram[256];
+    double histogram[256];
     int pRgb_num;
 
 };

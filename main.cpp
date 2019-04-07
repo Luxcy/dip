@@ -49,8 +49,17 @@ int main(int argc, char *argv[])
 //    DWORD r2 = r1;
 //    dst = src.Contrast_stretch(r1, 0, r2, 255);
 
-
-    dst = src.RGB2Gray();
+//显示
+//    src.compute_histogram();
+//    dst = src.show_histogram();
+//均衡化
+//    dst = src.histo_equalization();
+//阈值分割
+//    dst = src.thresh_seg(128);
+// 规定化
+    Mat Z;
+    Z = readimg("./img/11.bmp");
+    dst = src.histogram_map(Z);
     dst.compute_histogram();
     dst = dst.show_histogram();
 

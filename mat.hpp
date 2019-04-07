@@ -189,14 +189,115 @@ Mat::Mat(DWORD width, DWORD height){
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
 /*
+ * 函数功能：直方图的规定化
+*/
+Mat Mat::histogram_map(Mat Z)
+{
+    Mat dst(rows,cols);
+    compute_histogram();
+    double pr[L];
+    pr[0] = histogram[0];
+    for(int i=1; i<L; i++){
+        pr[i] = pr[i-1] + histogram[i];
+    }
+
+    Z.compute_histogram();
+    double pz[L];
+    pz[0] = Z.histogram[0];
+    for(int i=1; i<L; i++){
+        pz[i] = pz[i-1] + Z.histogram[i];
+    }
+
+    double diff[L][L];
+    for(int i=0; i<L; i++){
+        for(int j=0; j<L; j++){
+            diff[i][j] = fabs(pr[i] - pz[j]);
+        }
+    }
+    int s[L];
+
+    for(int i=0; i<L; i++){
+        double min = diff[i][0];
+        int index = 0;
+        for(int j=1; j<L; j++){
+            if(diff[i][j] < min){
+                min = diff[i][j];
+                index = j;
+            }
+        }
+        s[i] = index;
+    }
+
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(s[dataOfBmp_src[i][j].rgbRed]);
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(s[dataOfBmp_src[i][j].rgbGreen]);
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(s[dataOfBmp_src[i][j].rgbBlue]);
+        }
+    }
+    return dst;
+}
+/*
+ * 函数功能：阈值分割
+ * 输入：阈值
+*/
+Mat Mat::thresh_seg(DWORD thresh)
+{
+    RGB2Gray();
+    Mat dst(rows,cols);
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            if(dataOfBmp_src[i][j].rgbRed > thresh){
+                dst.dataOfBmp_src[i][j].rgbRed = 255;
+                dst.dataOfBmp_src[i][j].rgbGreen = 255;
+                dst.dataOfBmp_src[i][j].rgbBlue = 255;
+            } else{
+                dst.dataOfBmp_src[i][j].rgbRed = 0;
+                dst.dataOfBmp_src[i][j].rgbGreen = 0;
+                dst.dataOfBmp_src[i][j].rgbBlue = 0;
+            }
+        }
+    }
+    return dst;
+}
+/*
+ * 函数功能：直方图的均衡化
+*/
+Mat Mat::histo_equalization()
+{
+    compute_histogram();
+    Mat dst(rows,cols);
+    double pr[L];
+    pr[0] = histogram[0];
+    for(int i=1; i<L; i++){
+        pr[i] = pr[i-1] + histogram[i];
+    }
+    int s[L];
+    s[0] = 0;
+    for(int i=1; i<L; i++){
+        s[i] =  int((L - 1) * pr[i] + 0.5);
+    }
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = BYTE(s[dataOfBmp_src[i][j].rgbRed]);
+            dst.dataOfBmp_src[i][j].rgbGreen = BYTE(s[dataOfBmp_src[i][j].rgbGreen]);
+            dst.dataOfBmp_src[i][j].rgbBlue = BYTE(s[dataOfBmp_src[i][j].rgbBlue]);
+        }
+    }
+    return dst;
+}
+/*
  * 函数功能：展示灰度图的直方图
 */
 Mat Mat::show_histogram()
 {
     DWORD maxL = -1;
+    DWORD double_histo[256];
+    for(int i=0; i<L; i++)
+        double_histo[i] = histogram[i] * 200;
     for(int i=0; i<L; i++){
-        if(histogram[i] > maxL){
-            maxL = histogram[i];
+        if(double_histo[i] > maxL){
+            maxL = double_histo[i];
         }
     }
     maxL += 20;
@@ -210,8 +311,7 @@ Mat Mat::show_histogram()
     }
 
     for(int j=0; j<L; j++) {
-        for (int i = maxL-1; i >= maxL-histogram[j];i--) {
-            std::cout << i << " " << j << std::endl;
+        for (int i = maxL-1; i >= maxL-double_histo[j];i--) {
             dst.dataOfBmp_src[i][j].rgbRed = 0;
             dst.dataOfBmp_src[i][j].rgbGreen = 0;
             dst.dataOfBmp_src[i][j].rgbBlue = 0;
@@ -225,18 +325,30 @@ Mat Mat::show_histogram()
 */
 void Mat::compute_histogram()
 {
+    Mat dst(cols, rows);
+    for(DWORD i=0;i<cols;i++)
+    {
+        for(DWORD j=0;j<rows;j++)
+        {
+            double gray = 0.299*dataOfBmp_src[i][j].rgbRed+0.587*dataOfBmp_src[i][j].rgbGreen+0.114*dataOfBmp_src[i][j].rgbBlue;
+            dst.dataOfBmp_src[i][j].rgbRed = (BYTE)gray;
+            dst.dataOfBmp_src[i][j].rgbGreen = (BYTE)gray;
+            dst.dataOfBmp_src[i][j].rgbBlue = (BYTE)gray;
+        }
+    }
+
     for(int i=0; i<L; i++){
         histogram[i] = 0;
     }
 
     for(DWORD i=0; i<cols; i++) {
         for (DWORD j = 0; j < rows; j++) {
-            int index = int(dataOfBmp_src[i][j].rgbRed);
+            int index = int(dst.dataOfBmp_src[i][j].rgbRed);
             histogram[index]+=1;
         }
     }
     for(int i=0; i<L; i++){
-        histogram[i] = DWORD(histogram[i]*1.0/cols/rows*200);
+        histogram[i] = histogram[i] / (cols * rows * 1.0);
     }
 }
 /*函数功能：位切片(灰度图) 如果是彩色图，先变成灰度图
