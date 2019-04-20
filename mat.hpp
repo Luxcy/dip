@@ -189,6 +189,151 @@ Mat::Mat(DWORD width, DWORD height){
         dataOfBmp_src[i] =new RGBQUAD[rows];
 }
 /*
+ * 函数功能：锐化 kernal
+ */
+int Mat::sharpen_kernal(int sx, int sy, ColorType ctype, SharpenType stype)
+{
+    int numk = 9;
+    int x[] = {-1,-1,-1,0,0,0,1,1,1};
+    int y[] = {-1,0,1,-1,0,1,-1,0,1};
+    for(int i=0;i<numk;i++){
+        if(sx+x[i]<0||sx+x[i]>=cols||sy+y[i]<0||sx+x[i]>=rows){
+            return 0;
+        }
+    }
+    int num = 0;
+    int kernal[numk];
+    for(int i=0; i<numk; i++) {
+        if (stype == SP_Horizontal) {
+            kernal[i] = Horizontal[i];
+        }else if (stype == SP_Vertical) {
+            kernal[i] = Vertical[i];
+        }else if (stype == SP_Sobel_x) {
+            kernal[i] = Sobelx[i];
+        }else if (stype == SP_Sobel_y) {
+            kernal[i] = Sobely[i];
+        }else if (stype == SP_Priwitt_x) {
+            kernal[i] = Priwittx[i];
+        }else if (stype == SP_Priwitt_y) {
+            kernal[i] = Priwitty[i];
+        }else if(stype == SP_Laplacian){
+            kernal[i] = Laplacian[i];
+        }
+    }
+    if(stype == SP_Wallis){
+        double ker[numk];
+        for(int i=0; i<numk; i++) {
+            ker[i] = Wallis[i];
+        }
+        double sum = 0;
+        if (ctype == Red) {
+            for (int i = 0; i < numk; i++) {
+                sum += 46*log(dataOfBmp_src[sx + x[i]][sy + y[i]].rgbRed + 1) * ker[i];
+            }
+        } else if (ctype == Blue) {
+            for (int i = 0; i < numk; i++) {
+                sum += 46*log(dataOfBmp_src[sx + x[i]][sy + y[i]].rgbBlue + 1) * ker[i];
+            }
+        } else {
+            for (int i = 0; i < numk; i++) {
+                sum += 46*log(dataOfBmp_src[sx + x[i]][sy + y[i]].rgbGreen + 1) * ker[i];
+            }
+        }
+        return int(sum);
+
+    }else {
+        if (ctype == Red) {
+            for (int i = 0; i < numk; i++) {
+                num += dataOfBmp_src[sx + x[i]][sy + y[i]].rgbRed * kernal[i];
+            }
+        } else if (ctype == Blue) {
+            for (int i = 0; i < numk; i++) {
+                num += dataOfBmp_src[sx + x[i]][sy + y[i]].rgbBlue * kernal[i];
+            }
+        } else {
+            for (int i = 0; i < numk; i++) {
+                num += dataOfBmp_src[sx + x[i]][sy + y[i]].rgbGreen * kernal[i];
+            }
+        }
+        return num;
+    }
+}
+/*
+ * 函数功能：一阶锐化：水平　垂直　无方向
+ */
+Mat Mat::Sharpen(SharpenType stype, ProNegType ptype)
+{
+    Mat dst(rows,cols);
+    int min_r = L, min_g = L , min_b = L;
+    int max_r = -1, max_g = -1 , max_b = -1;
+    int rgbRed[cols][rows];
+    int rgbGreen[cols][rows];
+    int rgbBlue[cols][rows];
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            if(stype == SP_Horizontal || stype == SP_Vertical || stype == SP_Laplacian || stype == SP_Wallis){
+                rgbRed[i][j] = sharpen_kernal(i,j,Red,stype);
+                rgbGreen[i][j] = sharpen_kernal(i,j,Green,stype);
+                rgbBlue[i][j] = sharpen_kernal(i,j,Blue,stype);
+
+            }
+            else if(stype == SP_Roberts){
+                if((i+1)<0||i+1>=cols||j+1<0|j+1>=rows){
+                    rgbRed[i][j] = 0;
+                    rgbGreen[i][j] = 0;
+                    rgbBlue[i][j] = 0;
+                }else{
+                    rgbRed[i][j] = abs(dataOfBmp_src[i+1][j+1].rgbRed-dataOfBmp_src[i][j].rgbRed) + abs(dataOfBmp_src[i+1][j].rgbRed-dataOfBmp_src[i][j+1].rgbRed);
+                    rgbGreen[i][j] = abs(dataOfBmp_src[i+1][j+1].rgbGreen-dataOfBmp_src[i][j].rgbGreen) + abs(dataOfBmp_src[i+1][j].rgbGreen-dataOfBmp_src[i][j+1].rgbGreen);
+                    rgbBlue[i][j] = abs(dataOfBmp_src[i+1][j+1].rgbBlue-dataOfBmp_src[i][j].rgbBlue) + abs(dataOfBmp_src[i+1][j].rgbBlue-dataOfBmp_src[i][j+1].rgbBlue);
+                }
+            }else if(stype == SP_Sobel){
+
+                rgbRed[i][j] = sqrt(pow(sharpen_kernal(i,j,Red,SP_Sobel_x),2) + pow(sharpen_kernal(i,j,Red,SP_Sobel_y),2));
+                rgbGreen[i][j] = sqrt(pow(sharpen_kernal(i,j,Green,SP_Sobel_x),2) + pow(sharpen_kernal(i,j,Green,SP_Sobel_y),2));
+                rgbBlue[i][j] = sqrt(pow(sharpen_kernal(i,j,Blue,SP_Sobel_x),2) + pow(sharpen_kernal(i,j,Blue,SP_Sobel_y),2));
+
+            }else if(stype == SP_Priwitt){
+
+                rgbRed[i][j] = sqrt(pow(sharpen_kernal(i,j,Red,SP_Priwitt_x),2) + pow(sharpen_kernal(i,j,Red,SP_Priwitt_y),2));
+                rgbGreen[i][j] = sqrt(pow(sharpen_kernal(i,j,Green,SP_Priwitt_x),2) + pow(sharpen_kernal(i,j,Green,SP_Priwitt_y),2));
+                rgbBlue[i][j] = sqrt(pow(sharpen_kernal(i,j,Blue,SP_Priwitt_x),2) + pow(sharpen_kernal(i,j,Blue,SP_Priwitt_y),2));
+            }
+
+            if(min_r > rgbRed[i][j]) min_r = rgbRed[i][j];
+            if(min_g > rgbGreen[i][j]) min_g = rgbGreen[i][j];
+            if(min_b > rgbBlue[i][j]) min_b = rgbBlue[i][j];
+
+            if(max_r < rgbRed[i][j]) max_r = rgbRed[i][j];
+            if(max_g < rgbGreen[i][j]) max_g = rgbGreen[i][j];
+            if(max_b < rgbBlue[i][j]) max_b = rgbBlue[i][j];
+
+        }
+
+    }
+    if(ptype == ADD)
+    {
+        for(DWORD i=0; i<cols; i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                dst.dataOfBmp_src[i][j].rgbRed = BYTE((rgbRed[i][j] + abs(min_r)) * (L - 1) / (max_r + abs(min_r)));
+                dst.dataOfBmp_src[i][j].rgbGreen = BYTE((rgbGreen[i][j] + abs(min_g)) * (L - 1) / (abs(min_g) + max_g));
+                dst.dataOfBmp_src[i][j].rgbBlue = BYTE((rgbBlue[i][j] + abs(min_b)) * (L - 1) / (abs(min_b) + max_b));
+            }
+        }
+    }else if(ptype == ABS)
+    {
+        for(DWORD i=0; i<cols; i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                dst.dataOfBmp_src[i][j].rgbRed = BYTE(abs(rgbRed[i][j]) * (L - 1) / max_r);
+                dst.dataOfBmp_src[i][j].rgbGreen = BYTE(abs(rgbGreen[i][j]) * (L - 1) / max_g);
+                dst.dataOfBmp_src[i][j].rgbBlue = BYTE(abs(rgbBlue[i][j]) * (L - 1) / max_b);
+            }
+        }
+    }
+//    std::cout << "dsa" << std::endl;
+    return dst;
+}
+/*
  * 函数功能：kernel 乘法　３×３
  */
 int Mat::kernal_mul(int sx, int sy, ColorType ctype, kernalType ktype)

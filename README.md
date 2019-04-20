@@ -59,3 +59,15 @@ digital image processing
     * 对称近邻
     * 最小方差
     * sigma
+### 图片锐化
+无论是去绝对值还是整体加上一个值，都要归一化到0-255
+* 一阶锐化
+    * 单方向：水平、垂直
+    * 无方向
+        * 交叉微分(Roberts)算法
+        * Sobel锐化
+        * Priwitt锐化
+* 二阶锐化
+    * Laplacian
+    * Wallis算法   
+    

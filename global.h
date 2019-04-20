@@ -75,11 +75,37 @@ enum FilterType
     Mean,
     Median
 };
+enum SharpenType
+{
+    SP_Horizontal,
+    SP_Vertical,
+    SP_Roberts,
+    SP_Sobel,
+    SP_Sobel_x,
+    SP_Sobel_y,
+    SP_Priwitt,
+    SP_Priwitt_x,
+    SP_Priwitt_y,
+    SP_Laplacian,
+    SP_Wallis
+};
+enum ProNegType
+{
+    ABS,
+    ADD
+};
 const double PI = 3.1415926;
 const DWORD L = 256; // gry level
 //const int kernalone[3][3] = {{1,1,1},{1,1,1},{1,1,1}};
 const int kernalone[] = {1,1,1,1,1,1,1,1,1};
-
+const int Horizontal[] = {1,2,1,0,0,0,-1,-2,-1};
+const int Vertical[] = {1,0,-1,2,0,-2,1,0,-1};
+const int Sobelx[] = {-1, 0, 1,-2,0,2,-1,0,1};
+const int Sobely[] = {-1,-2,-1,0,0,0,1,2,1};
+const int Priwittx[] = {-1,0,1,-1,0,1,-1,0,1};
+const int Priwitty[] = {-1,-1,-1,0,0,0,1,1,1};
+const int Laplacian[] = {0,-1,0,-1,4,-1,0,-1,0};
+const double Wallis[] = {0,-0.25,0,-0.25,1,-0.25,0,-0.25,0};
 struct minker
 {
     int pix;

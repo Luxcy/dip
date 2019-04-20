@@ -52,6 +52,10 @@ public:
     int kernal_med(int sx, int sy, ColorType ctype, kernalType ktype);
     int kernal_knn(int sx, int sy, ColorType ctype, kernalType ktype);
 
+    Mat Sharpen(SharpenType stype,ProNegType ptype=ABS);
+    int sharpen_kernal(int sx, int sy, ColorType ctype, SharpenType stype);
+
+
 
 
 

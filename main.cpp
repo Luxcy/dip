@@ -69,7 +69,17 @@ int main(int argc, char *argv[])
 //中值
 //    dst = src.Filter(Median);
 //KNN
-    dst = src.Filter(KNN);
+//    dst = src.Filter(KNN);
+//锐化
+//    dst = src.Sharpen(SP_Horizontal,ADD);
+//    dst = src.Sharpen(SP_Vertical);
+
+//    dst = src.Sharpen(SP_Roberts);
+//    dst = src.Sharpen(SP_Priwitt);
+//    dst = src.Sharpen(SP_Sobel);
+//    dst = src.Sharpen(SP_Laplacian,ADD);
+    dst = src.Sharpen(SP_Wallis,ADD);
+//    dst = dst.reverseColor();
 
     char *save_name = argv[2];
     printf("please input the .bmp destination file name:\n");
