@@ -455,7 +455,7 @@ int Mat::kernal_knn(int sx, int sy, ColorType ctype, kernalType ktype)
     for(int i=0; i<5; i++){
         num+=pixels[i].pix;
     }
-    return int(num/9.0)>(L-1)?L-1:int(num/9.0);
+    return int(num/5.0)>(L-1)?L-1:int(num/5.0);
 }
 
 /*
