@@ -56,6 +56,14 @@ public:
     int sharpen_kernal(int sx, int sy, ColorType ctype, SharpenType stype);
 
 
+    int P_segment(double p, int flag=0);
+    int Var_segment();
+    double SIGMA(int th);
+    Mat Cluster_segment(int type);
+
+    Mat Labeled(int type);
+
+
 
 
 

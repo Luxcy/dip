@@ -334,6 +334,313 @@ Mat Mat::Sharpen(SharpenType stype, ProNegType ptype)
     return dst;
 }
 /*
+ * 函数功能:　聚类的方法
+ * 输入：　显示类别　0---c1    1---c2
+ * 输出：分割后的图像
+ */
+Mat Mat::Cluster_segment(int type)
+{
+    double func;
+    double num = cols * rows * 1.0;
+    int th = 128;
+    std::vector<int> c1,c2;
+    int flag = 1;
+    int k = 0;
+    double ut1=0,ut2=0;
+    while(true) {
+        double sigma1 = 0, sigma2 = 0, ans;
+        double u1 = 0, u2 = 0;
+        for (DWORD i = 0; i < cols; i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                int gray = dataOfBmp_src[i][j].rgbRed;
+                if(flag == 1){
+                    if (gray < th) {
+                        u1 += gray;
+                        c1.push_back(gray);
+                    } else {
+                        u2 += gray;
+                        c2.push_back(gray);
+                    }
+                }else {
+                    if(fabs(gray-ut1) < fabs(gray-ut2))
+                    {
+                        u1 += gray;
+                        c1.push_back(gray);
+                    }else {
+                        u2 += gray;
+                        c2.push_back(gray);
+                    }
+                }
+            }
+        }
+        double func1, func2;
+        if (c1.size() > 0) {
+            u1 /= c1.size();
+            sigma1 = Sigma(c1, u1);
+            func1 = c1.size() * 1.0 / num * sigma1;
+        } else
+            func1 = 0;
+
+        if (c2.size() > 0) {
+            u2 /= c2.size();
+            sigma2 = Sigma(c2, u2);
+            func2 = c2.size() * 1.0 / num * sigma2;
+        } else
+            func2 = 0;
+
+        ans = func1 + func2;
+        if(flag == 0 && ans == func)
+        {
+            break;
+        }
+        if(flag == 1) flag = 0;
+
+        func = ans;
+        ut1 = u1;
+        ut2 = u2;
+        c1.clear();
+        c2.clear();
+
+    }
+    std::cout << ut1 << " " << ut2 << std::endl;
+    Mat dst(rows,cols);
+    for (DWORD i = 0; i < cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            dst.dataOfBmp_src[i][j].rgbRed = 255;
+            dst.dataOfBmp_src[i][j].rgbGreen = 255;
+            dst.dataOfBmp_src[i][j].rgbBlue = 255;
+        }
+    }
+    for (DWORD i = 0; i < cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            if(type == 0){
+                std::vector<int>::iterator it = find(c1.begin(), c1.end(), int(dataOfBmp_src[i][j].rgbRed));
+                if (it != c1.end()){
+                    dst.dataOfBmp_src[i][j].rgbRed = 0;
+                    dst.dataOfBmp_src[i][j].rgbGreen = 0;
+                    dst.dataOfBmp_src[i][j].rgbBlue = 0;
+                }
+            }else {
+                std::vector<int>::iterator it = find(c2.begin(), c2.end(), int(dataOfBmp_src[i][j].rgbRed));
+                if (it != c2.end()){
+                    dst.dataOfBmp_src[i][j].rgbRed = 0;
+                    dst.dataOfBmp_src[i][j].rgbGreen = 0;
+                    dst.dataOfBmp_src[i][j].rgbBlue = 0;
+                }
+            }
+
+        }
+    }
+
+    return dst;
+}
+/*
+ * 函数功能:贴标签(针对二值图像)
+ * 输入：连通的类型 0---4连通，1--8连通
+ * 输出：连通的贴完标签的彩色图片
+ */
+Mat Mat::Labeled(int type)
+{
+    std::vector<std::vector<point>> points;
+    points.resize(10000);
+    int Labs[cols][rows];
+
+    for(int i=0; i<cols; i++) {
+        for(int j=0; j<rows; j++) {
+            Labs[i][j] = 0;
+        }
+    }
+    int num = type==0?4:8;
+    int x[num],y[num];
+    if(type==0){//4连通
+        memcpy(x,labx4,sizeof(x));
+        memcpy(y,laby4,sizeof(y));
+    }else{//8连通
+        memcpy(x,labx8,sizeof(x));
+        memcpy(y,laby8,sizeof(y));
+    }
+    int N = 0;
+    for(DWORD i=0; i<cols; i++) {
+        for(DWORD j=0; j<rows; j++){
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            if(gray == 0){
+                point pixel;
+                pixel.x = i;
+                pixel.y = j;
+                int label[3]={-1,-1,-1};//最多有三个标签
+                for(int k=0; k<num; k++){
+                    int xx = i + x[k];
+                    int yy = j + y[k];
+                    if(PixelsIsInPic(xx,yy)){
+                        int gra_xy = Labs[xx][yy];
+                        for(int q=0;q<3;q++)
+                        {
+                            if(label[q]!=gra_xy && label[q] == -1)
+                            {
+                                label[q] = gra_xy;
+                            }
+                        }
+                    }
+                }
+//                std::cout << label[0] << " " << label[1] << " " << label[2] << std::endl;
+                int flag = Labeltwo(label);
+                if(flag == -1){
+                    N = N + 1;
+                    Labs[i][j] = N;
+                    points[N].push_back(pixel);
+                }else if(flag > 0) {
+                    Labs[i][j] = N;
+                    points[N].push_back(pixel);
+                }else{
+                    int *lb = Labelmaxmin(label);
+                    Labs[i][j] = lb[0];
+                    points[lb[0]].push_back(pixel);
+
+                    for(int q=0; q<points[lb[1]].size(); q++){
+                        point lab2 = points[lb[1]][q];
+                        Labs[lab2.x][lab2.y] = lb[0];
+                        points[lb[0]].push_back(lab2);
+                    }
+                    points[lb[1]].clear();
+                    N = N - 1;
+                }
+            }
+        }
+    }
+    Mat dst(rows, cols);
+    srand( (unsigned)time( NULL ) );
+    for(int i=0; i<points.size(); i++)
+    {
+        int rr,gg,bb;
+        rr = rand()%256;
+        gg = rand()%256;
+        bb = rand()%256;
+        for(int j=0; j<points[i].size(); j++)
+        {
+            int xx,yy;
+            xx = points[i][j].x;
+            yy = points[i][j].y;
+            dst.dataOfBmp_src[xx][yy].rgbRed = rr;
+            dst.dataOfBmp_src[xx][yy].rgbBlue = bb;
+            dst.dataOfBmp_src[xx][yy].rgbGreen = gg;
+        }
+    }
+    return dst;
+}
+/*
+ * 函数功能:　计算灰度图中分割图像（<th）的方差
+ * 输出：方差
+ */
+double Mat::SIGMA(int th)
+{
+    double u = 0,sum=0;
+    double num = 0;
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            if(gray<th){
+                u += gray;
+                num += 1;
+            }
+        }
+    }
+    u /= num;
+    return u;
+//    for(DWORD i=0; i<cols; i++) {
+//        for (DWORD j = 0; j < rows; j++) {
+//            int gray = dataOfBmp_src[i][j].rgbRed;
+//            if(gray<th) sum += pow(gray-u, 2);
+//        }
+//    }
+//    return sqrt(sum/num);
+}
+/*
+ * 函数功能:　均匀性度量法
+ * 输出：分割的阈值
+ */
+int Mat::Var_segment()
+{
+    int l = 1;
+    int r = 254;
+    double func = 1e30;
+    double num = cols * rows * 1.0;
+    int th;
+
+    for(int k=l; k<=r; k++)
+    {
+        double sigma1 = 0, sigma2 = 0, ans;
+        double u1 = 0, u2 = 0;
+        std::vector<int> c1,c2;
+        for(DWORD i=0; i<cols; i++) {
+            for (DWORD j = 0; j < rows; j++) {
+                int gray = dataOfBmp_src[i][j].rgbRed;
+                if( gray < k) {
+                    u1 += gray;
+                    c1.push_back(gray);
+                }
+                else {
+                    u2+=gray;
+                    c2.push_back(gray);
+                }
+            }
+        }
+        double func1,func2;
+        if(c1.size()>0) {
+            u1 /= c1.size();
+            sigma1 = Sigma(c1,u1);
+            func1 = c1.size()*1.0/num * sigma1;
+        } else
+            func1 = 0;
+
+        if(c2.size()>0){
+            u2 /= c2.size();
+            sigma2 = Sigma(c2,u2);
+            func2 = c2.size()*1.0/num * sigma2;
+        } else
+            func2 = 0;
+
+        ans = func1 + func2 ;
+        if(ans < func) {
+            th = k;
+            func = ans;
+        }
+    }
+    return th;
+}
+/*
+ * 函数功能:　p-参数法
+ * 输入：p——已知分割图像的像素占图片的比例
+ *      flag = 0:表示默认目标物为暗 define
+ *      flag = 1:表示目标物为亮
+ * 输出：分割的阈值
+ */
+int Mat::P_segment(double p, int flag)
+{
+    compute_histogram();
+    if(flag) p = 1.0 - p;
+
+    double ans[L];
+    for(int i=0; i<L; i++){
+        ans[i] = 0.0;
+    }
+
+    int p_seg = -1;
+    ans[0] = histogram[0];
+    for(int i=1; i<L; i++){
+        ans[i] += ans[i-1] + histogram[i];
+        if(ans[i-1] < p && ans[i] > p){
+            p_seg = i;
+            break;
+        }
+    }
+
+    if(fabs(ans[p_seg-1] - p) > fabs(ans[p_seg]))
+        return p_seg;
+    else
+        return p_seg-1;
+
+}
+/*
  * 函数功能：kernel 乘法　３×３
  */
 int Mat::kernal_mul(int sx, int sy, ColorType ctype, kernalType ktype)

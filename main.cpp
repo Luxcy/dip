@@ -20,10 +20,10 @@ int main(int argc, char *argv[])
 //    src.show_bitHead();
 //    src.show_bitInfoHead();
 //    src.show_pRgb();
-//    Mat dst = src.reverseColor();
+//    dst = src.reverseColor();
 //    Mat dst =src.RGB2Gray();
-    double contrast = src.contrast(1);
-    std::cout << "contrast of 8D : " << contrast << std::endl;
+//    double contrast = src.contrast(1);
+//    std::cout << "contrast of 8D : " << contrast << std::endl;
     Mat dst;
 //    dst = src.Translate(10,-10);
 //    dst = src.Flip(VERTICAL);
@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 //        std::cout << "sdsadas0  " << std::endl;
 //        saveimg(dst,bitname);
 //    }
+//基于灰度的图片增强
 //    DWORD r1 = src.Get_min();
 //    DWORD r2 = src.Get_max();
 //    dst = src.Contrast_stretch(r1, 0, r2, 255);
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
 //    DWORD r1 = src.Get_mean();
 //    DWORD r2 = r1;
 //    dst = src.Contrast_stretch(r1, 0, r2, 255);
-
+//直方图
 //显示
 //    src.compute_histogram();
 //    dst = src.show_histogram();
@@ -78,9 +79,30 @@ int main(int argc, char *argv[])
 //    dst = src.Sharpen(SP_Priwitt);
 //    dst = src.Sharpen(SP_Sobel);
 //    dst = src.Sharpen(SP_Laplacian,ADD);
-    dst = src.Sharpen(SP_Wallis,ADD);
+//    dst = src.Sharpen(SP_Wallis,ADD);
 //    dst = dst.reverseColor();
 
+//分割 基于灰度图，需要变成灰度图　
+//p-参数法
+//    double p = 0.1507;
+//    int th = src.P_segment(p);
+//    std::cout << th << std::endl;
+//    dst = src.Contrast_stretch(th, 0, th, 255);
+//均匀性度量法 ///不能确定目标函数的凹凸性或者单调性，不能用二分或者三分的方法吧。。。。******
+//    int th = src.Var_segment();
+//    std::cout << th << std::endl;
+//    dst = src.Contrast_stretch(th, 0, th, 255);
+//    std::cout << src.SIGMA(th) << std::endl;
+//聚类的方法
+//   dst = src.Cluster_segment(0);
+
+//贴标签
+    dst = src.Labeled(1);
+    int label[3] = {-1,2,1};
+    std::sort(label,label+3);
+    int *lb;
+    lb  = Labelmaxmin(label);
+    std::cout << lb[0] << " " << lb[1] << " " << std::endl;
     char *save_name = argv[2];
     printf("please input the .bmp destination file name:\n");
     saveimg(dst,save_name);

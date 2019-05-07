@@ -106,9 +106,20 @@ const int Priwittx[] = {-1,0,1,-1,0,1,-1,0,1};
 const int Priwitty[] = {-1,-1,-1,0,0,0,1,1,1};
 const int Laplacian[] = {0,-1,0,-1,4,-1,0,-1,0};
 const double Wallis[] = {0,-0.25,0,-0.25,1,-0.25,0,-0.25,0};
+
+const int labx4[] = {-1,0};
+const int laby4[] = {0,-1};
+const int labx8[] = {-1,-1,-1,0};
+const int laby8[] = {-1,0,1,-1};
+
 struct minker
 {
     int pix;
     int diff;
+};
+struct  point
+{
+    int x;
+    int y;
 };
 #endif //DIP_GLOBAL_H
