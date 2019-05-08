@@ -46,11 +46,13 @@ int Labeltwo(int *label)
 {
     int sumtwo = 0;
     int sumone = 0;
+
     for(int i=0; i<3; i++)
     {
         if(label[i] <= 0){
             sumtwo ++;
-        }else {
+        }
+        if(label[i] > 0){
             sumone += label[i];
         }
     }
@@ -58,7 +60,7 @@ int Labeltwo(int *label)
         return -1;
     }
     if(label[0] == label[1] && label[1] == label[2]){
-        return 1;
+        return label[0];
     }
     if(sumtwo == 2){
         return std::max(label[0],std::max(label[1],label[2]));
@@ -71,7 +73,7 @@ int *Labelmaxmin(int *label)
     static int m[2];
     std::sort(label,label+3);
     int i=0;
-    while(label[i]<0) i++;
+    while(label[i]<=0) i++;
     m[0] = label[i];
     m[1] = label[2];
     return m;

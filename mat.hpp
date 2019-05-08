@@ -435,6 +435,91 @@ Mat Mat::Cluster_segment(int type)
     return dst;
 }
 /*
+ *函数功能:膨胀算法
+ */
+Mat Mat::Dilation()
+{
+    Mat dst(rows,cols);
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            dst.dataOfBmp_src[i][j].rgbBlue = gray;
+            dst.dataOfBmp_src[i][j].rgbGreen = gray;
+            dst.dataOfBmp_src[i][j].rgbRed = gray;
+        }
+    }
+    //定义结构元素
+    int x[]={1,1};
+    int y[]={0,1};
+    int count = 2;
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            if(gray == 255)
+            {
+                int num = 0;
+                for(int k=0; k<count; k++){
+                    int xx = i+x[k];
+                    int yy = j+x[k];
+                    if(PixelsIsInPic(xx,yy)){
+                        int gra_xy = dataOfBmp_src[xx][yy].rgbRed;
+                        if(gra_xy == 0) num++;
+                    }
+                }
+                if(num>0){
+                    dst.dataOfBmp_src[i][j].rgbBlue = 0;
+                    dst.dataOfBmp_src[i][j].rgbGreen = 0;
+                    dst.dataOfBmp_src[i][j].rgbRed = 0;
+                }
+            }
+        }
+    }
+    return dst;
+}
+
+/*
+ *函数功能:腐蚀算法
+ */
+Mat Mat::Corrosion()
+{
+    Mat dst(rows,cols);
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            dst.dataOfBmp_src[i][j].rgbBlue = gray;
+            dst.dataOfBmp_src[i][j].rgbGreen = gray;
+            dst.dataOfBmp_src[i][j].rgbRed = gray;
+        }
+    }
+    //定义结构元素
+    int x[]={1,1};
+    int y[]={0,1};
+    int count = 2;
+    for(DWORD i=0; i<cols; i++) {
+        for (DWORD j = 0; j < rows; j++) {
+            int gray = dataOfBmp_src[i][j].rgbRed;
+            if(gray == 0)
+            {
+                int num = 0;
+                for(int k=0; k<count; k++){
+                    int xx = i+x[k];
+                    int yy = j+x[k];
+                    if(PixelsIsInPic(xx,yy)){
+                        int gra_xy = dataOfBmp_src[xx][yy].rgbRed;
+                        if(gra_xy == 0) num++;
+                    }
+                }
+                if(num!=count){
+                    dst.dataOfBmp_src[i][j].rgbBlue = 255;
+                    dst.dataOfBmp_src[i][j].rgbGreen = 255;
+                    dst.dataOfBmp_src[i][j].rgbRed = 255;
+                }
+            }
+        }
+    }
+    return dst;
+}
+/*
  * 函数功能:贴标签(针对二值图像)
  * 输入：连通的类型 0---4连通，1--8连通
  * 输出：连通的贴完标签的彩色图片
@@ -450,7 +535,7 @@ Mat Mat::Labeled(int type)
             Labs[i][j] = 0;
         }
     }
-    int num = type==0?4:8;
+    int num = type==0?2:4;
     int x[num],y[num];
     if(type==0){//4连通
         memcpy(x,labx4,sizeof(x));
@@ -460,6 +545,8 @@ Mat Mat::Labeled(int type)
         memcpy(y,laby8,sizeof(y));
     }
     int N = 0;
+    std::ofstream outfile;
+    outfile.open("1.txt");
     for(DWORD i=0; i<cols; i++) {
         for(DWORD j=0; j<rows; j++){
             int gray = dataOfBmp_src[i][j].rgbRed;
@@ -468,30 +555,38 @@ Mat Mat::Labeled(int type)
                 pixel.x = i;
                 pixel.y = j;
                 int label[3]={-1,-1,-1};//最多有三个标签
+
+
                 for(int k=0; k<num; k++){
                     int xx = i + x[k];
                     int yy = j + y[k];
                     if(PixelsIsInPic(xx,yy)){
                         int gra_xy = Labs[xx][yy];
+                        outfile << gra_xy << "(" << xx << " " << yy << ") ";
                         for(int q=0;q<3;q++)
                         {
+                            if(label[q] == gra_xy) break;
                             if(label[q]!=gra_xy && label[q] == -1)
                             {
                                 label[q] = gra_xy;
+                                break;
                             }
                         }
                     }
                 }
-//                std::cout << label[0] << " " << label[1] << " " << label[2] << std::endl;
+                outfile << std::endl;
+                outfile << label[0] << " " << label[1] << " " << label[2] << std::endl;
                 int flag = Labeltwo(label);
                 if(flag == -1){
                     N = N + 1;
                     Labs[i][j] = N;
                     points[N].push_back(pixel);
                 }else if(flag > 0) {
-                    Labs[i][j] = N;
-                    points[N].push_back(pixel);
+                    Labs[i][j] = flag;
+                    points[flag].push_back(pixel);
                 }else{
+                    outfile << "saadas" << std::endl;
+//                    std::cout << label[0] << " " << label[1] << " " << label[2] << std::endl;
                     int *lb = Labelmaxmin(label);
                     Labs[i][j] = lb[0];
                     points[lb[0]].push_back(pixel);
@@ -508,15 +603,18 @@ Mat Mat::Labeled(int type)
         }
     }
     Mat dst(rows, cols);
+    dst.SetBackGrund(255,255,255);
     srand( (unsigned)time( NULL ) );
-    for(int i=0; i<points.size(); i++)
+    for(int i=1; i<points.size(); i++)
     {
+
         int rr,gg,bb;
         rr = rand()%256;
         gg = rand()%256;
         bb = rand()%256;
         for(int j=0; j<points[i].size(); j++)
         {
+            std::cout << i << std::endl;
             int xx,yy;
             xx = points[i][j].x;
             yy = points[i][j].y;

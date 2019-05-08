@@ -97,12 +97,11 @@ int main(int argc, char *argv[])
 //   dst = src.Cluster_segment(0);
 
 //贴标签
-    dst = src.Labeled(1);
-    int label[3] = {-1,2,1};
-    std::sort(label,label+3);
-    int *lb;
-    lb  = Labelmaxmin(label);
-    std::cout << lb[0] << " " << lb[1] << " " << std::endl;
+    dst = src.Labeled(0);
+//腐蚀
+//    dst = src.Corrosion();
+//膨胀
+//    dst = src.Dilation();
     char *save_name = argv[2];
     printf("please input the .bmp destination file name:\n");
     saveimg(dst,save_name);

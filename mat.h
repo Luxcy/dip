@@ -61,7 +61,9 @@ public:
     double SIGMA(int th);
     Mat Cluster_segment(int type);
 
-    Mat Labeled(int type);
+    Mat Labeled(int type=0);
+    Mat Corrosion();
+    Mat Dilation();
 
 
 
